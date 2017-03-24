@@ -43,7 +43,7 @@ type priceDimension struct {
 	AppliesTo []interface{} `json:"appliesTo"`
 }
 
-type onDemand map[string]struct {
+type onDemand struct {
 	OfferTermCode   string                    `json:"offerTermCode"`
 	Sku             string                    `json:"sku"`
 	EffectiveDate   time.Time                 `json:"effectiveDate"`
@@ -75,7 +75,7 @@ type aws struct {
 	PublicationDate time.Time           `json:"publicationDate"`
 	Products        map[string]*product `json:"products"`
 	Terms           struct {
-		OnDemand map[string]*onDemand `json:"OnDemand"`
-		Reserved map[string]*reserved `json:"Reserved"`
+		OnDemand map[string]map[string]*onDemand `json:"OnDemand"`
+		Reserved map[string]*reserved            `json:"Reserved"`
 	}
 }

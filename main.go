@@ -34,6 +34,30 @@ var productType = graphql.NewObject(graphql.ObjectConfig{
 		"instanceType": &graphql.Field{
 			Type: graphql.String,
 		},
+		"offers": &graphql.Field{
+			Type: graphql.NewList(offerType),
+		},
+	},
+})
+
+var offerType = graphql.NewObject(graphql.ObjectConfig{
+	Name: "Offer",
+	Fields: graphql.Fields{
+		"type": &graphql.Field{
+			Type: graphql.String,
+		},
+		"code": &graphql.Field{
+			Type: graphql.String,
+		},
+		"LeaseContractLenght": &graphql.Field{
+			Type: graphql.String,
+		},
+		"PurchaseOption": &graphql.Field{
+			Type: graphql.String,
+		},
+		"OfferingClass": &graphql.Field{
+			Type: graphql.String,
+		},
 	},
 })
 
@@ -86,30 +110,55 @@ func main() {
 			},
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 
+				type myoffer struct {
+					Type string `json:"type"`
+					Code string `json:"code"`
+				}
 				type myproduct struct {
-					Sku             string `json:"sku"`
-					Location        string `json:"location"`
-					InstanceType    string `json:"instanceType"`
-					OperatingSystem string `json:"operatingSystem"`
+					Sku             string    `json:"sku"`
+					Location        string    `json:"location"`
+					InstanceType    string    `json:"instanceType"`
+					OperatingSystem string    `json:"operatingSystem"`
+					Offer           []myoffer `json:"offers"`
 				}
 
 				var prds []*myproduct
 				if sku, skuok := p.Args["sku"].(string); skuok {
+					var odtc string
+					for _, od := range objects.Terms.OnDemand[sku] {
+						odtc = od.OfferTermCode
+					}
 					prds = append(prds, &myproduct{
 						Sku:             objects.Products[sku].Sku,
 						Location:        objects.Products[sku].Attributes.Location,
 						InstanceType:    objects.Products[sku].Attributes.InstanceType,
 						OperatingSystem: objects.Products[sku].Attributes.OperatingSystem,
+						Offer: []myoffer{
+							myoffer{
+								Type: "OnDemand",
+								Code: odtc,
+							},
+						},
 					})
 
 				} else {
 
 					for _, prd := range objects.Products {
+						var odtc string
+						for _, od := range objects.Terms.OnDemand[sku] {
+							odtc = od.OfferTermCode
+						}
 						prds = append(prds, &myproduct{
 							Sku:             prd.Sku,
 							Location:        prd.Attributes.Location,
 							InstanceType:    prd.Attributes.InstanceType,
 							OperatingSystem: prd.Attributes.OperatingSystem,
+							Offer: []myoffer{
+								myoffer{
+									Type: "OnDemand",
+									Code: odtc,
+								},
+							},
 						})
 					}
 				}
