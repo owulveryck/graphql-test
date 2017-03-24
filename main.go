@@ -4,8 +4,8 @@ import (
 	"encoding/gob"
 	"encoding/json"
 	"flag"
-	"fmt"
 	"github.com/graphql-go/graphql"
+	"github.com/graphql-go/handler"
 	"log"
 	"net/http"
 	"os"
@@ -174,13 +174,16 @@ func main() {
 	if err != nil {
 		log.Fatalf("error: %v\n", err)
 	}
-	params := graphql.Params{Schema: schema, RequestString: query}
-	r := graphql.Do(params)
-	if r.HasErrors() {
-		log.Fatalf("Failed due to errors: %v\n", r.Errors)
-	}
+	h := handler.New(&handler.Config{
+		Schema: &schema,
+		Pretty: true,
+	})
 
-	rJSON, _ := json.Marshal(r)
-	fmt.Printf("%s", rJSON)
+	// serve HTTP
+	// static file server to serve Graphiql in-browser editor
+	fs := http.FileServer(http.Dir("static"))
 
+	http.Handle("/graphql", h)
+	http.Handle("/", fs)
+	http.ListenAndServe(":8080", nil)
 }
