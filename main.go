@@ -3,20 +3,18 @@ package main
 import (
 	"encoding/gob"
 	"encoding/json"
-	"flag"
 	"github.com/graphql-go/graphql"
 	"github.com/graphql-go/handler"
+	"github.com/kelseyhightower/envconfig"
 	"log"
 	"net/http"
 	"os"
 )
 
-var query string
-var dbFile string
-
-func init() {
-	flag.StringVar(&query, "query", "{}", "query to ask server for data")
-	flag.StringVar(&dbFile, "db", "", "DB Path")
+// Configuration ...
+type Configuration struct {
+	DB         string `default:"db"`
+	ListenAddr string `default:":8080"`
 }
 
 var productType = graphql.NewObject(graphql.ObjectConfig{
@@ -62,13 +60,17 @@ var offerType = graphql.NewObject(graphql.ObjectConfig{
 })
 
 func main() {
-	flag.Parse()
+	var config Configuration
+	err := envconfig.Process("graphql", &config)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
 	var objects aws
-	if dbFile == "" {
-		log.Println("Please provide a dbFile")
+	if config.DB == "" {
+		log.Println("Please provide a config.DB")
 		return
 	}
-	file, err := os.Open(dbFile) // For read access.
+	file, err := os.Open(config.DB) // For read access.
 	if err != nil {
 		// Cannot open file... Let's create it
 		resp, err := http.Get("https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonEC2/20170224022054/index.json")
@@ -81,7 +83,7 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		file, err := os.Create(dbFile)
+		file, err := os.Create(config.DB)
 		defer file.Close()
 		if err != nil {
 			log.Fatal(err)
@@ -185,5 +187,6 @@ func main() {
 
 	http.Handle("/graphql", h)
 	http.Handle("/", fs)
-	http.ListenAndServe(":8080", nil)
+	log.Println("Listening on:", config.ListenAddr)
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }
