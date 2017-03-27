@@ -4,6 +4,7 @@ main
 db
 graphql-test
 dist
+node_modules
 # Compiled Object files, Static and Dynamic libs (Shared Objects)
 *.o
 *.a
