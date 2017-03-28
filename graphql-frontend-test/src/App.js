@@ -24,6 +24,31 @@ const columns = [{
   accessor: 'operatingSystem'
 }]
 
+const offerColumns = [{
+  header: 'Type',
+  accessor: 'type',
+  sortable: true,
+},{
+  header: 'Offering Class',
+  accessor: 'OfferingClass',
+} , {
+  header: 'Purchase Option',
+  accessor: 'PurchaseOption',
+} , {
+  header: 'Lease Contract Length',
+  accessor: 'LeaseContractLength',
+
+}]
+
+const priceColumns = [{
+  header: 'Unit',
+  accessor: 'Unit',
+},{
+  header: 'Price',
+  accessor: 'PricePerUnit',
+}]
+
+
 function ProductList({ loading, products }) {
   if (loading) {
     return <div>Loading</div>;
@@ -34,6 +59,36 @@ function ProductList({ loading, products }) {
       pivotBy={['location', 'instanceType']}
       data={products}
       columns={columns}
+      SubComponent={(row) => {
+        return (
+          <div style={{padding: '20px'}}>
+          <em>Offers</em>
+          <br />
+          <br />
+          <ReactTable
+          data={row.row.offers}
+          columns={offerColumns}
+          defaultPageSize={3}
+          showPagination={true}
+          SubComponent={(row) => {
+            return (
+              <div style={{padding: '20px'}}>
+              <em>Prices</em>
+              <br />
+              <br />
+              <ReactTable
+              data={row.row.prices}
+              columns={priceColumns}
+              showPagination={true}
+              defaultPageSize={3}
+              />
+              </div>
+            );
+          }}
+            />
+            </div>
+          );
+        }}
       />
       </div>
     );
@@ -47,6 +102,16 @@ query products {
     location
     instanceType
     operatingSystem
+    offers {
+      type 
+      OfferingClass
+      LeaseContractLength
+      PurchaseOption
+      prices {
+        Unit
+        PricePerUnit
+      }
+    }
   }
 }
 `

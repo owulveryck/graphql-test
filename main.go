@@ -50,13 +50,31 @@ var offerType = graphql.NewObject(graphql.ObjectConfig{
 		"code": &graphql.Field{
 			Type: graphql.String,
 		},
-		"LeaseContractLenght": &graphql.Field{
+		"LeaseContractLength": &graphql.Field{
 			Type: graphql.String,
 		},
 		"PurchaseOption": &graphql.Field{
 			Type: graphql.String,
 		},
 		"OfferingClass": &graphql.Field{
+			Type: graphql.String,
+		},
+		"prices": &graphql.Field{
+			Type: graphql.NewList(priceType),
+		},
+	},
+})
+
+var priceType = graphql.NewObject(graphql.ObjectConfig{
+	Name: "Price",
+	Fields: graphql.Fields{
+		"RateCode": &graphql.Field{
+			Type: graphql.String,
+		},
+		"Unit": &graphql.Field{
+			Type: graphql.String,
+		},
+		"PricePerUnit": &graphql.Field{
 			Type: graphql.String,
 		},
 	},
@@ -116,8 +134,12 @@ func main() {
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 
 				type myoffer struct {
-					Type string `json:"type"`
-					Code string `json:"code"`
+					Type                string           `json:"type"`
+					Code                string           `json:"code"`
+					LeaseContractLength string           `json:"LeaseContractLength"`
+					OfferingClass       string           `json:"OfferingClass"`
+					PurchaseOption      string           `json:"OfferingClass"`
+					PriceDimensions     []priceDimension `json:"prices"`
 				}
 				type myproduct struct {
 					Sku             string    `json:"sku"`
@@ -149,21 +171,39 @@ func main() {
 				} else {
 
 					for _, prd := range objects.Products {
-						var odtc string
+						var myoffers []myoffer
+						sku := prd.Sku
 						for _, od := range objects.Terms.OnDemand[sku] {
-							odtc = od.OfferTermCode
+							var pds []priceDimension
+							for _, pd := range od.PriceDimensions {
+								pds = append(pds, pd)
+							}
+							myoffers = append(myoffers, myoffer{
+								Type:            "OnDemand",
+								Code:            od.OfferTermCode,
+								PriceDimensions: pds,
+							})
+						}
+						for _, od := range objects.Terms.Reserved[sku] {
+							var pds []priceDimension
+							for _, pd := range od.PriceDimensions {
+								pds = append(pds, pd)
+							}
+							myoffers = append(myoffers, myoffer{
+								Type:                "Reserved",
+								Code:                od.OfferTermCode,
+								LeaseContractLength: od.TermAttributes.LeaseContractLength,
+								OfferingClass:       od.TermAttributes.OfferingClass,
+								PurchaseOption:      od.TermAttributes.PurchaseOption,
+								PriceDimensions:     pds,
+							})
 						}
 						prds = append(prds, &myproduct{
 							Sku:             prd.Sku,
 							Location:        prd.Attributes.Location,
 							InstanceType:    prd.Attributes.InstanceType,
 							OperatingSystem: prd.Attributes.OperatingSystem,
-							Offer: []myoffer{
-								myoffer{
-									Type: "OnDemand",
-									Code: odtc,
-								},
-							},
+							Offer:           myoffers,
 						})
 					}
 				}

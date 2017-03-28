@@ -55,7 +55,7 @@ type onDemand struct {
 	} `json:"termAttributes"`
 }
 
-type reserved map[string]struct {
+type reserved struct {
 	OfferTermCode   string                    `json:"offerTermCode"`
 	Sku             string                    `json:"sku"`
 	EffectiveDate   time.Time                 `json:"effectiveDate"`
@@ -76,6 +76,6 @@ type aws struct {
 	Products        map[string]*product `json:"products"`
 	Terms           struct {
 		OnDemand map[string]map[string]*onDemand `json:"OnDemand"`
-		Reserved map[string]*reserved            `json:"Reserved"`
-	}
+		Reserved map[string]map[string]*reserved `json:"Reserved"`
+	} `json:"terms"`
 }
