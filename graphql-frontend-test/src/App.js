@@ -10,7 +10,8 @@ const columns = [{
   accessor: 'sku' // String-based value accessors!
 }, {
   header: 'Location',
-  accessor: 'location'
+  accessor: 'location',
+  sortable: true
 }, {
   header: 'Instance Type',
   accessor: 'instanceType'
@@ -53,8 +54,8 @@ const ProductListWithData = graphql(allProducts, {
 })(ProductList);
 
 class App extends Component {
-  constructor(...args) {
-    super(...args);
+  constructor(props) {
+    super(props);
     const networkInterface = createNetworkInterface({
       uri: 'http://localhost:8080/graphql'
     })
