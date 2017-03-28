@@ -11,7 +11,11 @@ const columns = [{
 }, {
   header: 'Location',
   accessor: 'location',
-  sortable: true
+  sortable: true,
+  width: 400,
+  style: {
+    textAlign: 'left'
+  }
 }, {
   header: 'Instance Type',
   accessor: 'instanceType'
@@ -26,10 +30,11 @@ function ProductList({ loading, products }) {
   } else {
     return (
       <div className="App">
-        <ReactTable
-          data={products}
-          columns={columns}
-        />
+      <ReactTable className="-striped -highlight"
+      pivotBy={['location', 'instanceType']}
+      data={products}
+      columns={columns}
+      />
       </div>
     );
   }
