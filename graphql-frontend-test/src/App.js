@@ -5,30 +5,18 @@ import 'react-table/react-table.css'
 import { ApolloClient, ApolloProvider, createNetworkInterface } from 'react-apollo';
 import { gql, graphql } from 'react-apollo';
 
-
-const data = [{
-  name: 'Tanner Linsley',
-  age: 26,
-  friend: {
-    name: 'Jason Maurer',
-    age: 23,
-  }
-}]
-
 const columns = [{
-  header: 'Name',
-  accessor: 'name' // String-based value accessors!
+  header: 'SKU',
+  accessor: 'sku' // String-based value accessors!
 }, {
-  header: 'Age',
-  accessor: 'age',
-  render: props => <span className='number'>{props.value}</span> // Custom cell components!
+  header: 'Location',
+  accessor: 'location'
 }, {
-  header: 'Friend Name',
-  accessor: d => d.friend.name, // Custom value accessors!
-  id: 'fname'
+  header: 'Instance Type',
+  accessor: 'instanceType'
 }, {
-  header: props => <span>Friend Age</span>, // Custom header components!
-  accessor: 'friend.age'
+  header: 'Operating System',
+  accessor: 'operatingSystem'
 }]
 
 function ProductList({ loading, products }) {
@@ -38,29 +26,23 @@ function ProductList({ loading, products }) {
     return (
       <div className="App">
         <ReactTable
-          data={data}
+          data={products}
           columns={columns}
         />
-        <ul>
-          {products.map(product =>
-              <li key={product.sku}>
-                {product.title} by {' '}
-                {product.author.firstName} {product.author.lastName} {' '}
-                ({product.votes} votes)
-              </li>
-          )}
-        </ul>
       </div>
     );
   }
 }
+
 const allProducts = gql`
 query products {
+  products{
     sku
     location
     instanceType
     operatingSystem
   }
+}
 `
 
 const ProductListWithData = graphql(allProducts, {
@@ -69,8 +51,6 @@ const ProductListWithData = graphql(allProducts, {
       products,
   }),
 })(ProductList);
-
-
 
 class App extends Component {
   constructor(...args) {
@@ -93,7 +73,4 @@ class App extends Component {
   }
 }
 
-
-
 export default App;
-
