@@ -6,6 +6,8 @@ import (
 	"github.com/graphql-go/graphql"
 	"github.com/graphql-go/handler"
 	"github.com/kelseyhightower/envconfig"
+	"github.com/rs/cors"
+	"github.com/urfave/negroni"
 	"log"
 	"net/http"
 	"os"
@@ -13,8 +15,9 @@ import (
 
 // Configuration ...
 type Configuration struct {
-	DB         string `default:"db"`
-	ListenAddr string `default:":8080"`
+	DB             string `default:"db"`
+	ListenAddr     string `default:":8080"`
+	AllowedOrigins string `default:"*"`
 }
 
 var productType = graphql.NewObject(graphql.ObjectConfig{
@@ -180,13 +183,21 @@ func main() {
 		Schema: &schema,
 		Pretty: true,
 	})
+	n := negroni.Classic() // Includes some default middlewares such as logger
+	c := cors.New(cors.Options{
+		AllowedOrigins:   []string{config.AllowedOrigins},
+		AllowedMethods:   []string{"GET", "HEAD", "POST", "PUT", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "X-Requested-With", "Content-Type", "Authorization", "Accept-Encoding", "X-CSRF-Token"},
+		AllowCredentials: false,
+	})
 
-	// serve HTTP
-	// static file server to serve Graphiql in-browser editor
+	n.Use(c)
+	mux := http.NewServeMux()
 	fs := http.FileServer(http.Dir("static"))
+	mux.Handle("/", fs)
+	mux.Handle("/graphql", h)
+	n.UseHandler(mux)
 
-	http.Handle("/graphql", h)
-	http.Handle("/", fs)
 	log.Println("Listening on:", config.ListenAddr)
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Fatal(http.ListenAndServe(":8080", n))
 }
